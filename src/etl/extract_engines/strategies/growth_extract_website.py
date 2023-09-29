@@ -47,14 +47,15 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
     def __extract_products_by_category(self, category):
         headers = {'User-Agent': 'Mozilla/5.0'}
         response = requests.get('{}/{}'.format(self.base_url, category), headers=headers)
-
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, 'html.parser')
-            product_items = [prod for prod in soup.find_all('div', class_='vitrine-precos')]
-            products = [self.__get_product_details(item) for item in product_items]
-            return products
-        else:
+    
+        if response.status_code != 200:
             raise RuntimeError('Request failed')
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        product_items = [prod for prod in soup.find_all('div', class_='vitrine-precos')]
+        products = [self.__get_product_details(item) for item in product_items]
+        return products
+
     
     def extract(self):
         products_by_category = [self.__extract_products_by_category(category) for category in self.product_categories]
