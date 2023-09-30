@@ -1,6 +1,8 @@
 from etl.extract_engines.strategies.growth_extract_website import GrowthExtractWebsite
+from etl.transform_engines.strategies.growth_transform_data import GrowthTransformData
 
 if __name__ == "__main__":
-    obj = GrowthExtractWebsite()
-    for data in obj.extract():
-        print(data)
+    growthExtract = GrowthExtractWebsite()
+    growthTransform = GrowthTransformData()
+    for data in growthExtract.extract():
+        print(growthTransform.transform(data))
