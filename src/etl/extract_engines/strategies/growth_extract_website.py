@@ -63,20 +63,16 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
         print("----------: ", category)
         has_next_page = True
         current_page = 1
-        products = []
         while has_next_page:
             result = self.__extract_items_from_request(category, page=current_page)
             data = [self.__get_product_details(item) for item in result['product_items']]
-            products.append(data)
+            for item in data:
+                yield item
             current_page += 1
             if not result['has_next']:
                 has_next_page = False
-            
-        return products
 
     
     def extract(self):
-        nested_list_products_category = [self.__extract_products_by_category(category) for category in self.product_categories]
-        nested_products = [item for sublist in nested_list_products_category for item in sublist]
-        products = [item for sublist in nested_products for item in sublist]
-        return products
+       for category in self.product_categories:
+           yield from self.__extract_products_by_category(category)
