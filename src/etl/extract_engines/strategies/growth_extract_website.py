@@ -21,25 +21,32 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
 
     def __get_product_details(self, item):
         text_item = item.text.replace('\n', '')
-        product_name = text_item.split('R$')[0]
+        product_name = text_item.lower().split('- growth supplements')[0].strip()
+        
+        if 'r$' in product_name:
+            product_name = product_name.split('r$')[0]
+        
         price_matches = re.findall(r'R\$(\d+\,\d{2})',  text_item)
-        max_installments = re.findall(r'(\d+)x', text_item)
-        prices = {}
-        if len(price_matches) == 0:
-            prices = None
-        else:
-            prices = { 
-                'cash_payment': price_matches[0], 
-                'cash_installments_credit_card': {
-                    'max_installments': max_installments[0],
-                    'value': price_matches[2]
-                },
-                'cash_payment_credit_card': price_matches[1]
-            }   
+        max_installments_data = re.findall(r'(\d+)x', text_item)
+
+        cash_payment = None
+        max_installments = None
+        min_price_installments = None
+        cash_payment_credit_card = None
+        
+        if len(price_matches) != 0:
+            cash_payment = price_matches[0]
+            max_installments = max_installments_data[0]
+            min_price_installments = price_matches[2]
+            cash_payment_credit_card = price_matches[1] 
+
         product_info = {
             'company_name': 'Growth Supplements',
             'product_name': product_name, 
-            'prices': prices 
+            'cash_payment': cash_payment,
+            'max_installments': max_installments,
+            'min_price_installments': min_price_installments,
+            'cash_payment_credit_card': cash_payment_credit_card
         }
         return product_info
     
