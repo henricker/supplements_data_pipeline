@@ -28,7 +28,7 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
         if len(price_matches) == 0:
             prices = None
         else:
-            prices: { 
+            prices = { 
                 'cash_payment': price_matches[0], 
                 'cash_installments_credit_card': {
                     'max_installments': max_installments[0],
@@ -36,12 +36,12 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
                 },
                 'cash_payment_credit_card': price_matches[1]
             }   
-        whey_info = {
+        product_info = {
             'company_name': 'Growth Supplements',
             'product_name': product_name, 
             'prices': prices 
         }
-        return whey_info
+        return product_info
     
     def __extract_items_from_request(self, category, page):
         print("----------: ", page)
@@ -66,11 +66,11 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
         products = []
         while has_next_page:
             result = self.__extract_items_from_request(category, page=current_page)
-            if not result['has_next']:
-                has_next_page = False
             data = [self.__get_product_details(item) for item in result['product_items']]
             products.append(data)
             current_page += 1
+            if not result['has_next']:
+                has_next_page = False
             
         return products
 
