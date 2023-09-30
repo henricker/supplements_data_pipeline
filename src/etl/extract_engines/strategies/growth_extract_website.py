@@ -2,7 +2,6 @@ from ..abstract_extract_website import AbstractExtractWebsite
 import requests
 from bs4 import BeautifulSoup
 import re
-import asyncio
 
 class GrowthExtractWebsite(AbstractExtractWebsite):
     def __init__(self):
@@ -43,20 +42,41 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
             'prices': prices 
         }
         return whey_info
-        
-    def __extract_products_by_category(self, category):
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get('{}/{}'.format(self.base_url, category), headers=headers)
     
+    def __extract_items_from_request(self, category, page):
+        print("----------: ", page)
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get('{}/{}/{}'.format(self.base_url, category, page), headers=headers)
         if response.status_code != 200:
             raise RuntimeError('Request failed')
-        
         soup = BeautifulSoup(response.content, 'html.parser')
         product_items = [prod for prod in soup.find_all('div', class_='vitrine-precos')]
-        products = [self.__get_product_details(item) for item in product_items]
+        has_next = False
+        try:
+            has_next = 'disabled' not in soup.find('button', class_="proxima").attrs['class']
+        except (AttributeError, KeyError):
+            has_next = False
+        
+        return { 'product_items': product_items, 'has_next': has_next }
+        
+    def __extract_products_by_category(self, category):
+        print("----------: ", category)
+        has_next_page = True
+        current_page = 1
+        products = []
+        while has_next_page:
+            result = self.__extract_items_from_request(category, page=current_page)
+            if not result['has_next']:
+                has_next_page = False
+            data = [self.__get_product_details(item) for item in result['product_items']]
+            products.append(data)
+            current_page += 1
+            
         return products
 
     
     def extract(self):
-        products_by_category = [self.__extract_products_by_category(category) for category in self.product_categories]
-        print(products_by_category)
+        nested_list_products_category = [self.__extract_products_by_category(category) for category in self.product_categories]
+        nested_products = [item for sublist in nested_list_products_category for item in sublist]
+        products = [item for sublist in nested_products for item in sublist]
+        return products
