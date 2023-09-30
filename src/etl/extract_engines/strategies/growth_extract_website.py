@@ -21,7 +21,7 @@ class GrowthExtractWebsite(AbstractExtractWebsite):
 
     def __get_product_details(self, item):
         text_item = item.text.replace('\n', '')
-        product_name = text_item.split('-')[0]
+        product_name = text_item.split('R$')[0]
         price_matches = re.findall(r'R\$(\d+\,\d{2})',  text_item)
         max_installments = re.findall(r'(\d+)x', text_item)
         prices = {}
